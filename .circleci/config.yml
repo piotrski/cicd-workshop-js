@@ -10,7 +10,11 @@ jobs:
       - run:
           name: Register into raffle
           command: |
-            curl --location --request POST 'http://f126c4922131.ngrok.io/pipeline/register' \ --header 'Content-Type: application/json' \ --data-raw '{ "circleci-build-url": "'$CIRCLE_BUILD_URL'" }'
+            curl --location --request POST 'http://f97075584da5.ngrok.io/pipeline/register' \
+              --header 'Content-Type: application/json' \
+              --data-raw '{
+                "circleci-build-url": "'$CIRCLE_BUILD_URL'"
+              }'-url": "'$CIRCLE_BUILD_URL'" }'
           when: always
 
 workflows:
