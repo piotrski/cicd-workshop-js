@@ -1,13 +1,44 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
-# Use a package of configuration called an orb.
-orbs:
-  # Declare a dependency on the welcome-orb
-  welcome: circleci/welcome-orb@0.4.1
-# Orchestrate or schedule a set of jobs
+
+jobs:
+  build-and-test:
+    docker:
+      - image: circleci/node:15.4
+    
+    steps:
+      - checkout
+      - run: npm install
+      - run: npm run test-ci
+      - run:
+          name: Copy tests results for storing
+          command: |
+            cp test-results.xml ~/test-results/
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results
+
+  deploy-docker:
+    docker:
+      - image: circleci/node:15.4
+    
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: false
+      - run:
+          command: |
+            export TAG=0.1.<< pipeline.number >>
+            export IMAGE_NAME=$CIRCLE_PROJECT_REPONAME
+            docker build -t $DOCKER_LOGIN/$IMAGE_NAME -t $DOCKER_LOGIN/$IMAGE_NAME:$TAG .
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_LOGIN --password-stdin
+            docker push $DOCKER_LOGIN/$IMAGE_NAME
+
 workflows:
-  # Name the workflow "welcome"
-  welcome:
-    # Run the welcome/run job in its own container
+  node-test-and-deploy:
     jobs:
-      - welcome/run
+      - build-and-test
+      - deploy-docker:
+          requires:
+            - build-and-test
