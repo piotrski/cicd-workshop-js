@@ -40,6 +40,4 @@ workflows:
   node-test-and-deploy:
     jobs:
       - build-and-test
-      - deploy-docker:
-          requires:
-            - build-and-test
+      - deploy-docker
